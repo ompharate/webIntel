@@ -1,100 +1,98 @@
-import Image from "next/image";
+"use client";
+
+import { FormEvent, useState } from "react";
+import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
+import { Loader2, Lock, Send } from "lucide-react";
+import Alert from "@/components/ui/Alert";
 
 export default function Home() {
-  return (
-    <div className="grid grid-rows-[20px_1fr_20px] items-center justify-items-center min-h-screen p-8 pb-20 gap-16 sm:p-20 font-[family-name:var(--font-geist-sans)]">
-      <main className="flex flex-col gap-8 row-start-2 items-center sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={180}
-          height={38}
-          priority
-        />
-        <ol className="list-inside list-decimal text-sm text-center sm:text-left font-[family-name:var(--font-geist-mono)]">
-          <li className="mb-2">
-            Get started by editing{" "}
-            <code className="bg-black/[.05] dark:bg-white/[.06] px-1 py-0.5 rounded font-semibold">
-              app/page.tsx
-            </code>
-            .
-          </li>
-          <li>Save and see your changes instantly.</li>
-        </ol>
+  const [url, setUrl] = useState("");
+  const [question, setQuestion] = useState("");
+  const [response, setResponse] = useState("");
+  const [loading, setLoading] = useState(false);
 
-        <div className="flex gap-4 items-center flex-col sm:flex-row">
-          <a
-            className="rounded-full border border-solid border-transparent transition-colors flex items-center justify-center bg-foreground text-background gap-2 hover:bg-[#383838] dark:hover:bg-[#ccc] text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+  };
+  const handleUrlCheck = async (e:FormEvent) => {
+    e.preventDefault();
+    try {
+      if (!url) <Alert type="danger" message="Please enter a valid URL" />;
+      const response = await fetch(url, { method: "HEAD" });
+
+      if (!response.ok) {
+        return <Alert type="danger" message="Please enter a valid URL" />;
+      }
+    } catch (error) {
+      return <Alert type="danger" message="Please enter a valid URL" />;
+    }
+  };
+
+  return (
+    <div className="flex flex-col min-h-screen  bg-[#09090B] text-white">
+      {/* <Alert type="success" message="Operation completed successfully!" /> */}
+
+      <header className="p-6 text-center">
+        <h1 className="text-3xl font-bold mb-4">WebIntel</h1>
+        <form
+          onSubmit={handleUrlCheck}
+          className="flex justify-center items-center space-x-2"
+        >
+          <Input
+            type="url"
+            placeholder="Enter URL"
+            value={url}
+            onChange={(e) => setUrl(e.target.value)}
+            className="max-w-md bg-gray-700 text-white border border-1 border-gray-500 placeholder-gray-400 "
+          />
+          <Button
+            type="submit"
+            variant="outline"
+            className="bg-[#09090B] border  border-gray-500 hover:shadow-sm hover:shadow-neutral-100 hover:text-white hover:bg-[#09090B] text-white  flex items-center"
           >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={20}
-              height={20}
-            />
-            Deploy now
-          </a>
-          <a
-            className="rounded-full border border-solid border-black/[.08] dark:border-white/[.145] transition-colors flex items-center justify-center hover:bg-[#f2f2f2] dark:hover:bg-[#1a1a1a] hover:border-transparent text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 sm:min-w-44"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Read our docs
-          </a>
+            <Lock /> <h1>Lock </h1>
+          </Button>
+        </form>
+      </header>
+
+      <main className="flex-grow flex justify-center items-center p-6">
+        <div className="w-full max-w-2xl bg-gray-800 rounded-lg shadow-lg p-6 border border-gray-700">
+          <h2 className="text-xl font-semibold mb-4">AI Response</h2>
+          {loading ? (
+            <div className="flex justify-center items-center">
+              <Loader2 className="h-8 w-8 animate-spin" />
+            </div>
+          ) : response ? (
+            <p className="text-gray-300">{response}</p>
+          ) : (
+            <p className="text-gray-400 italic">
+              AI response will appear here...
+            </p>
+          )}
         </div>
       </main>
-      <footer className="row-start-3 flex gap-6 flex-wrap items-center justify-center">
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
+
+      <footer className="p-6">
+        <form
+          onSubmit={handleSubmit}
+          className="flex justify-center items-center space-x-2"
         >
-          <Image
-            aria-hidden
-            src="/file.svg"
-            alt="File icon"
-            width={16}
-            height={16}
+          <Input
+            type="url"
+            placeholder="Enter your prompt..."
+            value={url}
+            onChange={(e) => setUrl(e.target.value)}
+            className="max-w-md bg-gray-700 text-white border border-1 border-gray-500 placeholder-gray-400 "
           />
-          Learn
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/window.svg"
-            alt="Window icon"
-            width={16}
-            height={16}
-          />
-          Examples
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/globe.svg"
-            alt="Globe icon"
-            width={16}
-            height={16}
-          />
-          Go to nextjs.org →
-        </a>
+          <Button
+            type="submit"
+            variant="outline"
+            className="bg-[#09090B] border  border-gray-500 hover:shadow-sm hover:shadow-neutral-100 hover:text-white hover:bg-[#09090B] text-white  flex items-center"
+          >
+            <Send />
+          </Button>
+        </form>
       </footer>
     </div>
   );
