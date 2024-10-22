@@ -1,38 +1,82 @@
 "use client";
-
+import ReactMarkdown from "react-markdown";
 import { FormEvent, useState } from "react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Loader2, Lock, Send } from "lucide-react";
-import Alert from "@/components/ui/Alert";
+
+import { useAlert } from "@/context/AlertContext";
+import axios from "axios";
 
 export default function Home() {
+  const { setAlert } = useAlert();
   const [url, setUrl] = useState("");
+  const [validUrl, setIsValidUrl] = useState(false);
   const [question, setQuestion] = useState("");
   const [response, setResponse] = useState("");
   const [loading, setLoading] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-  };
-  const handleUrlCheck = async (e:FormEvent) => {
-    e.preventDefault();
-    try {
-      if (!url) <Alert type="danger" message="Please enter a valid URL" />;
-      const response = await fetch(url, { method: "HEAD" });
+    setLoading(true);
+    setQuestion("");  
+    if (!validUrl || !question || !url) {
+      setAlert({ type: "danger", message: "Please fill out all fields" });
+      return;
+    }
 
-      if (!response.ok) {
-        return <Alert type="danger" message="Please enter a valid URL" />;
+    try {
+      const response = await axios.post("/api/generate", {
+        url,
+        question,
+      });
+
+      if (response) {
+        setResponse(response.data.data);
+      } else {
+        setAlert({ type: "danger", message: "something went wrong" });
       }
     } catch (error) {
-      return <Alert type="danger" message="Please enter a valid URL" />;
+      setLoading(false);
+      setAlert({ type: "danger", message: "something went wrong" });
+      return;
     }
+    setLoading(false);
+  };
+  const isValidUrl = (url: string) => {
+    const pattern = new RegExp(
+      "^(https?:\\/\\/)" + // protocol
+        "((([a-z\\d]([a-z\\d-]*[a-z\\d])*)\\.)+[a-z]{2,}|" + // domain name
+        "((\\d{1,3}\\.){3}\\d{1,3}))" + // OR ip (v4) address
+        "(\\:\\d+)?(\\/[-a-z\\d%_.~+]*)*" + // port and path
+        "(\\?[;&a-z\\d%_.~+=-]*)?" + // query string
+        "(\\#[-a-z\\d_]*)?$",
+      "i" // fragment locator
+    );
+    return !!pattern.test(url);
   };
 
+  const handleUrlCheck = (e: FormEvent) => {
+    e.preventDefault();
+
+    if (!url) {
+      setUrl("");
+      setIsValidUrl(false);
+      setAlert({ type: "danger", message: "Please enter a URL" });
+      return;
+    }
+
+    if (!isValidUrl(url)) {
+      setUrl("");
+      setIsValidUrl(false);
+      setAlert({ type: "danger", message: "Please enter a valid URL" });
+      return;
+    }
+    setIsValidUrl(true);
+    setAlert({ type: "success", message: "URL set!" });
+  };
   return (
     <div className="flex flex-col min-h-screen  bg-[#09090B] text-white">
-      {/* <Alert type="success" message="Operation completed successfully!" /> */}
-
       <header className="p-6 text-center">
         <h1 className="text-3xl font-bold mb-4">WebIntel</h1>
         <form
@@ -41,6 +85,7 @@ export default function Home() {
         >
           <Input
             type="url"
+            disabled={validUrl}
             placeholder="Enter URL"
             value={url}
             onChange={(e) => setUrl(e.target.value)}
@@ -57,14 +102,14 @@ export default function Home() {
       </header>
 
       <main className="flex-grow flex justify-center items-center p-6">
-        <div className="w-full max-w-2xl bg-gray-800 rounded-lg shadow-lg p-6 border border-gray-700">
-          <h2 className="text-xl font-semibold mb-4">AI Response</h2>
+        <div className="w-full max-w-4xl bg-[#09090B] rounded-lg shadow-lg p-6 border  border-gray-700 h-[400px]">
+          <h2 className="text-xl font-semibold mb-4">WebIntel</h2>
           {loading ? (
             <div className="flex justify-center items-center">
               <Loader2 className="h-8 w-8 animate-spin" />
             </div>
           ) : response ? (
-            <p className="text-gray-300">{response}</p>
+            <ReactMarkdown>{response}</ReactMarkdown>
           ) : (
             <p className="text-gray-400 italic">
               AI response will appear here...
@@ -73,16 +118,22 @@ export default function Home() {
         </div>
       </main>
 
-      <footer className="p-6">
+      <footer className="p-6 flex flex-col">
+        {validUrl && (
+          <div className="font-serif text-sm bg-green-200 max-w-fit mx-auto  shadow-md shadow-green-600 my-2 rounded-md text-green-800 p-2">
+            {url}
+          </div>
+        )}
+
         <form
           onSubmit={handleSubmit}
           className="flex justify-center items-center space-x-2"
         >
           <Input
-            type="url"
+            type="text"
             placeholder="Enter your prompt..."
-            value={url}
-            onChange={(e) => setUrl(e.target.value)}
+            value={question}
+            onChange={(e) => setQuestion(e.target.value)}
             className="max-w-md bg-gray-700 text-white border border-1 border-gray-500 placeholder-gray-400 "
           />
           <Button

@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import localFont from "next/font/local";
 import "./globals.css";
 import MouseCircle from "@/components/ui/MouseCircle";
+import { AlertProvider } from "@/context/AlertContext";
 
 const geistSans = localFont({
   src: "./fonts/GeistVF.woff",
@@ -29,8 +30,10 @@ export default function RootLayout({
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
-        <MouseCircle/>
+        <AlertProvider>
+          <MouseCircle />
         {children}
+        </AlertProvider>
       </body>
     </html>
   );
