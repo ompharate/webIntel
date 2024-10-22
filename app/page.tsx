@@ -22,7 +22,6 @@ export default function Home() {
     setQuestion("");  
     if (!validUrl || !question || !url) {
       setAlert({ type: "danger", message: "Please fill out all fields" });
-      return;
     }
 
     try {
