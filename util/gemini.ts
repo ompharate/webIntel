@@ -14,10 +14,11 @@ export async function askGeminiAI(
       parts: [
         {
           text: `
-            You are visiting a website. Here is the content provided to you:
-            ${content}
-            Please answer the user's question: ${question}
-            website url: ${url}
+           You are visiting a website, and here is the content provided to you:
+          ${content}
+          Please read the content carefully and answer the user's question:
+        **User's Question:** ${question}
+      **Website URL:** ${url}
           `,
         },
       ],
@@ -28,7 +29,7 @@ export async function askGeminiAI(
     const result = await model.generateContent({
       contents: combined,
       generationConfig: {
-        maxOutputTokens: 100,
+        maxOutputTokens: 300,
         temperature: 0.1,
       },
     });
