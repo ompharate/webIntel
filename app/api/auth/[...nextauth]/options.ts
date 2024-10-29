@@ -1,3 +1,5 @@
+import User from "@/models/user";
+import connectToDb from "@/util/mongo";
 import { NextAuthOptions } from "next-auth";
 import { Session as NextAuthSession } from "next-auth";
 import { JWT } from "next-auth/jwt";
@@ -23,20 +25,34 @@ export const options: NextAuthOptions = {
   ],
 
   callbacks: {
-    async jwt({ token, user }): Promise<JWT> {
+    async jwt({ token, user, account }): Promise<JWT> {
       if (user) {
-        console.log(user)
-        token.id = user.id; 
+        await connectToDb();
+
+        let existingUser = await User.findOne({ email: user.email });
+        console.log(existingUser);
+        if (!existingUser) {
+          existingUser = await User.create({
+            email: user.email,
+            name: user.name,
+            activePlan: ["free"],
+            googleId: user.id,
+          });
+        }
+
+        token.id = existingUser.id;
       }
       return token;
     },
 
     async session({ session, token }): Promise<Session> {
       if (token.id && session.user) {
-        session.user.id = token.id as string; 
+        session.user = {
+          ...session.user,
+          id: token.id as string,
+        } as User;
       }
       return session as Session;
     },
   },
-
 };

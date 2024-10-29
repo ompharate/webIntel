@@ -78,7 +78,7 @@ export default function Home() {
     setAlert({ type: "success", message: "URL set!" });
   };
   return (
-    <div className="flex flex-col     bg-[#09090B] text-white">
+    <div className="flex flex-col  h-screen bg-[#09090B] text-white">
       <header className=" text-center">
         <form
           onSubmit={handleUrlCheck}
