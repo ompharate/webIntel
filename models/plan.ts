@@ -1,7 +1,6 @@
-import { Description } from "@radix-ui/react-dialog";
 import mongoose from "mongoose";
 
-const subscriptionSchema = new mongoose.Schema({
+const planSchema = new mongoose.Schema({
   planName: {
     type: String,
     required: true,
@@ -21,5 +20,6 @@ const subscriptionSchema = new mongoose.Schema({
 });
 
 const Plans =
-  mongoose.models.Plan || mongoose.model("Plan", subscriptionSchema);
+  mongoose.models.Plan || mongoose.model("Plan", planSchema);
+  console.log(Plans)
 export default Plans;

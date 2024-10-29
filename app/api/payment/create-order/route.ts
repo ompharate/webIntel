@@ -1,31 +1,30 @@
 import { NextResponse } from "next/server";
-import Razorpay from "razorpay";
-
-const razorpay = new Razorpay({
-  key_id: process.env.NEXT_RAZORPAY_KEY_ID!,
-  key_secret: process.env.NEXT_RAZORPAY_KEY_SECRET!,
-});
+import razorpay from "@/lib/razorpay";
 
 export async function POST(req: Request) {
-  const { amount } = await req.json();
-  console.log(amount);
-  const options = {
-    amount: amount,
-    currency: "INR",
-    receipt: "receipt#1",
-    payment_capture: 1,
-  };
+  console.log("Key ID:", process.env.NEXT_RAZORPAY_KEY_ID!);
+  console.log("Key Secret:", process.env.NEXT_RAZORPAY_KEY_SECRET!);
 
   try {
+    const { amount } = await req.json();
+
+    const options = {
+      amount: Number(amount),
+      currency: "INR",
+      payment_capture: 1,
+    };
+
     const response = await razorpay.orders.create(options);
-  console.log(response)
+    console.log("Order Response:", response);
+
     return NextResponse.json({
-      success: true,
       response,
     });
-  } catch (error) {   
+  } catch (error) {
+    console.error("Error creating order:", error);
     return NextResponse.json({
       success: false,
+      message: error || "Internal Server Error",
     });
   }
 }

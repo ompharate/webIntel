@@ -1,3 +1,4 @@
+"use client";
 import React, { useEffect, useState } from "react";
 import { useSession } from "next-auth/react";
 import { Badge } from "@/components/ui/badge";
@@ -31,7 +32,7 @@ const Navbar: React.FC = () => {
   const [plans, setPlans] = useState<Plan[]>([]);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
-  const [dialogOpen, setDialogOpen] = useState(false); // New state for dialog
+  const [dialogOpen, setDialogOpen] = useState(false);
 
   useEffect(() => {
     const fetchPlans = async () => {
@@ -47,7 +48,15 @@ const Navbar: React.FC = () => {
     fetchPlans();
   }, []);
 
-  const handlePayment = async (amount: string, planName: string, id: string) => {
+  const handlePayment = async (
+    amount: string,
+    planName: string,
+    id: string
+  ) => {
+    if (planName == "Free") {
+      return;
+    }
+
     setLoading(true);
     const amountInPaise = parseInt(amount) * 100;
 
@@ -60,17 +69,19 @@ const Navbar: React.FC = () => {
     });
 
     const data = await response.json();
+
+    setLoading(false);
     if (response.ok) {
       const options = {
         key: process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID!,
-        amount: data.amount,
-        currency: data.currency,
+        amount: data.response.amount,
+        currency: data.response.currency,
         name: "WebIntel",
         description: "Test Transaction",
-        order_id: data.id,
+        order_id: data.response.id,
         handler: function (response: { razorpay_payment_id: string }) {
           alert("Payment successful: " + response.razorpay_payment_id);
-          setDialogOpen(false); // Close dialog after successful payment
+          setDialogOpen(false);
         },
         prefill: {
           name: "Customer Name",
@@ -78,7 +89,7 @@ const Navbar: React.FC = () => {
           contact: "9999999999",
         },
         theme: {
-          color: "#F37254",
+          color: "#09090B",
         },
       };
 
@@ -105,7 +116,8 @@ const Navbar: React.FC = () => {
             <DialogHeader>
               <DialogTitle>Plans</DialogTitle>
               <DialogDescription>
-                Diwali offer available! Get 20% off with the ₹299 plan and have fun.
+                Diwali offer available! Get 20% off with the ₹299 plan and have
+                fun.
               </DialogDescription>
             </DialogHeader>
             {error && <p className="text-red-500">{error}</p>}
@@ -122,9 +134,10 @@ const Navbar: React.FC = () => {
                     </CardContent>
                     <CardFooter>
                       <Button
+                        disabled={loading}
                         onClick={() => {
                           handlePayment(plan.amount, plan.planName, plan.id);
-                          setDialogOpen(false); // Close dialog when buying a plan
+                          setDialogOpen(false);
                         }}
                       >
                         {plan.amount === "0" ? "Current" : "₹" + plan.amount}
