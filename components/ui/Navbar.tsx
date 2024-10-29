@@ -1,6 +1,6 @@
 "use client";
 import React, { useEffect, useState } from "react";
-import { useSession } from "next-auth/react";
+import { signOut, useSession } from "next-auth/react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
@@ -19,6 +19,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
+import Link from "next/link";
 
 interface Plan {
   id: string;
@@ -101,54 +102,65 @@ const Navbar: React.FC = () => {
     setLoading(false);
   };
 
+  const handleLogout = () => {
+    signOut({ callbackUrl: "/" });
+  };
+
   return (
     <div className="bg-[#09090B] flex justify-between items-start p-4">
       <h1 className="text-2xl font-semibold text-white">WebIntel</h1>
       <div className="flex items-center gap-5">
-        <Badge variant="secondary">{session?.user?.name}</Badge>
-        <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
-          <DialogTrigger asChild>
-            <Button variant="outline">
-              {session?.user ? "Upgrade" : "Login"}
-            </Button>
-          </DialogTrigger>
-          <DialogContent className="max-w-5xl h-[600px]">
-            <DialogHeader>
-              <DialogTitle>Plans</DialogTitle>
-              <DialogDescription>
-                Diwali offer available! Get 20% off with the ₹299 plan and have
-                fun.
-              </DialogDescription>
-            </DialogHeader>
-            {error && <p className="text-red-500">{error}</p>}
-            <div className="flex justify-center space-x-2">
-              {plans.map((plan) => (
-                <div key={plan.id}>
-                  <Card>
-                    <CardHeader>
-                      <CardTitle>{plan.planName}</CardTitle>
-                      <CardDescription>For limited use</CardDescription>
-                    </CardHeader>
-                    <CardContent>
-                      <p>{plan.description}</p>
-                    </CardContent>
-                    <CardFooter>
-                      <Button
-                        disabled={loading}
-                        onClick={() => {
-                          handlePayment(plan.amount, plan.planName, plan.id);
-                          setDialogOpen(false);
-                        }}
-                      >
-                        {plan.amount === "0" ? "Current" : "₹" + plan.amount}
-                      </Button>
-                    </CardFooter>
-                  </Card>
-                </div>
-              ))}
-            </div>
-          </DialogContent>
-        </Dialog>
+        <Badge variant="destructive">7 / 10</Badge>
+        {session?.user ? (
+          <Button onClick={handleLogout} variant="secondary">
+            {session?.user?.name} (Logout){" "}
+          </Button>
+        ) : null}
+        {session?.user ? (
+          <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
+            <DialogTrigger asChild>
+              <Button variant="outline">Upgrade</Button>
+            </DialogTrigger>
+            <DialogContent className="max-w-5xl h-[600px]">
+              <DialogHeader>
+                <DialogTitle>Plans</DialogTitle>
+                <DialogDescription>
+                  Diwali offer available! Get 20% off with the ₹299 plan and
+                  have fun.
+                </DialogDescription>
+              </DialogHeader>
+              {error && <p className="text-red-500">{error}</p>}
+              <div className="flex justify-center space-x-2">
+                {plans.map((plan) => (
+                  <div key={plan.id}>
+                    <Card>
+                      <CardHeader>
+                        <CardTitle>{plan.planName}</CardTitle>
+                        <CardDescription>For limited use</CardDescription>
+                      </CardHeader>
+                      <CardContent>
+                        <p>{plan.description}</p>
+                      </CardContent>
+                      <CardFooter>
+                        <Button
+                          disabled={loading}
+                          onClick={() => {
+                            handlePayment(plan.amount, plan.planName, plan.id);
+                            setDialogOpen(false);
+                          }}
+                        >
+                          {plan.amount === "0" ? "Current" : "₹" + plan.amount}
+                        </Button>
+                      </CardFooter>
+                    </Card>
+                  </div>
+                ))}
+              </div>
+            </DialogContent>
+          </Dialog>
+        ) : (
+          <Link className="text-black, p-2 rounded-lg font-semibold bg-secondary" href={"/api/auth/signin"}>Login</Link>
+        )}
       </div>
     </div>
   );
