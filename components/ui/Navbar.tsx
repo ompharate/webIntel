@@ -45,7 +45,7 @@ const Navbar: React.FC = () => {
   useEffect(() => {
     const fetchUser = async () => {
       if (!session?.user) return;
-      const response = await fetch(`/api/user/${session?.user?.id}`, {
+      const response = await fetch(`/api/user?id=${session?.user?.id}`, {
         method: "GET",
       });
       const data = await response.json();
