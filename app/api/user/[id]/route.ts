@@ -1,7 +1,11 @@
 import User from "@/models/user";
 import { NextResponse } from "next/server";
 
-export async function GET(req: Request, { params }: { params: { id: string } }) {
+type Props = {
+  id: string;
+};
+
+export async function GET(req: Request, { params }: { params: Props }) {
   const { id } = params;
 
   try {
@@ -13,6 +17,9 @@ export async function GET(req: Request, { params }: { params: { id: string } }) 
 
     return NextResponse.json({ user });
   } catch (error) {
-    return NextResponse.json({ error: "Internal server error" }, { status: 500 });
+    return NextResponse.json(
+      { error: "Internal server error" },
+      { status: 500 }
+    );
   }
 }
