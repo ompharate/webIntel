@@ -8,6 +8,7 @@ import gfm from "remark-gfm";
 import { useAlert } from "@/context/AlertContext";
 import axios from "axios";
 import { useSession } from "next-auth/react";
+import { useRouter } from "next/navigation";
 
 export default function Home() {
   const { setAlert } = useAlert();
@@ -17,9 +18,10 @@ export default function Home() {
   const [response, setResponse] = useState("");
   const [loading, setLoading] = useState(false);
   const { data: session } = useSession();
-  console.log("session ", session);
+  const router = useRouter();
 
   const handleSubmit = async (e: React.FormEvent) => {
+    if (!session?.user) router.push("/api/auth/signin");
     e.preventDefault();
     setQuestion("");
     if (!validUrl || !question || !url) {
@@ -31,6 +33,7 @@ export default function Home() {
       const response = await axios.post("/api/generate", {
         url,
         question,
+        userId: session?.user?.id,
       });
 
       if (response) {

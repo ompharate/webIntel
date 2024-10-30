@@ -20,12 +20,18 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 
 interface Plan {
-  id: string;
+  _id: string;
   planName: string;
   description: string;
   amount: string;
+}
+
+interface User {
+  maxLimit: number;
+  currentLimit: number;
 }
 
 const Navbar: React.FC = () => {
@@ -34,7 +40,21 @@ const Navbar: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [dialogOpen, setDialogOpen] = useState(false);
+  const [user, setUser] = useState<User>();
+  const router = useRouter();
+  useEffect(() => {
+    const fetchUser = async () => {
+      if (!session?.user) return;
+      const response = await fetch(`/api/user/${session?.user?.id}`, {
+        method: "GET",
+      });
+      const data = await response.json();
+      setUser(data.user);
+    };
 
+    fetchUser();
+  }, [session?.user]);
+  console.log("user", user);
   useEffect(() => {
     const fetchPlans = async () => {
       try {
@@ -66,7 +86,12 @@ const Navbar: React.FC = () => {
       headers: {
         "Content-Type": "application/json",
       },
-      body: JSON.stringify({ amount: amountInPaise }),
+      body: JSON.stringify({
+        amount: amountInPaise,
+        planName,
+        planId: id,
+        userId: session?.user?.id,
+      }),
     });
 
     const data = await response.json();
@@ -81,14 +106,10 @@ const Navbar: React.FC = () => {
         description: "Test Transaction",
         order_id: data.response.id,
         handler: function (response: { razorpay_payment_id: string }) {
-          alert("Payment successful: " + response.razorpay_payment_id);
           setDialogOpen(false);
+          router.refresh();
         },
-        prefill: {
-          name: "Customer Name",
-          email: "customer@example.com",
-          contact: "9999999999",
-        },
+
         theme: {
           color: "#09090B",
         },
@@ -110,7 +131,9 @@ const Navbar: React.FC = () => {
     <div className="bg-[#09090B] flex justify-between items-start p-4">
       <h1 className="text-2xl font-semibold text-white">WebIntel</h1>
       <div className="flex items-center gap-5">
-        <Badge variant="destructive">7 / 10</Badge>
+        <Badge variant="destructive">
+          {user?.currentLimit} / {user?.maxLimit}
+        </Badge>
         {session?.user ? (
           <Button onClick={handleLogout} variant="secondary">
             {session?.user?.name} (Logout){" "}
@@ -132,7 +155,7 @@ const Navbar: React.FC = () => {
               {error && <p className="text-red-500">{error}</p>}
               <div className="flex justify-center space-x-2">
                 {plans.map((plan) => (
-                  <div key={plan.id}>
+                  <div key={plan._id}>
                     <Card>
                       <CardHeader>
                         <CardTitle>{plan.planName}</CardTitle>
@@ -145,7 +168,7 @@ const Navbar: React.FC = () => {
                         <Button
                           disabled={loading}
                           onClick={() => {
-                            handlePayment(plan.amount, plan.planName, plan.id);
+                            handlePayment(plan.amount, plan.planName, plan._id);
                             setDialogOpen(false);
                           }}
                         >
@@ -159,7 +182,12 @@ const Navbar: React.FC = () => {
             </DialogContent>
           </Dialog>
         ) : (
-          <Link className="text-black, p-2 rounded-lg font-semibold bg-secondary" href={"/api/auth/signin"}>Login</Link>
+          <Link
+            className="text-black, p-2 rounded-lg font-semibold bg-secondary"
+            href={"/api/auth/signin"}
+          >
+            Login
+          </Link>
         )}
       </div>
     </div>

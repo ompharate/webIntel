@@ -1,3 +1,4 @@
+import User from "@/models/user";
 import { validUrl } from "@/util";
 import { askGeminiAI } from "@/util/gemini";
 import redis from "@/util/redis";
@@ -6,7 +7,7 @@ import { scrapePage } from "@/util/scrapper";
 import { NextResponse } from "next/server";
 
 export async function POST(req: Request) {
-  const { url, question } = await req.json();
+  const { url, question, userId } = await req.json();
 
   if (!url) {
     return NextResponse.json({
@@ -17,6 +18,16 @@ export async function POST(req: Request) {
 
   try {
     const isValid = await validUrl(url);
+    const user = await User.findOne({
+      _id: userId,
+    });
+
+    if (user.currentLimit <= 1) {
+      return NextResponse.json({
+        success: false,
+        message: "You have reached your limit. Please upgrade your plan.",
+      });
+    }
 
     if (!isValid) {
       return NextResponse.json({
@@ -44,7 +55,8 @@ export async function POST(req: Request) {
     }
 
     const response = await askGeminiAI(parsedHtml, question, url);
-
+    user.currentLimit = user.currentLimit - 1;
+    user.save();
     return NextResponse.json({
       success: true,
       message: "URL is valid",
