@@ -2,7 +2,8 @@ import User from "@/models/user";
 import { NextResponse } from "next/server";
 
 export async function GET(req: Request, { params }: { params: { id: string } }) {
-  const { id } = await params;
+  const { id } = params;
+
   try {
     const user = await User.findById(id);
 
