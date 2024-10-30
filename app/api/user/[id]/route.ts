@@ -1,14 +1,12 @@
 import User from "@/models/user";
 import { NextResponse } from "next/server";
 
-type Props = {
-  id: string;
-};
-
-export async function GET(req: Request, { params }: { params: Props }) {
-  const { id } = params;
-
+export async function GET(
+  req: Request,
+  { params }: { params: { id: string } }
+) {
   try {
+    const { id } = params;
     const user = await User.findById(id);
 
     if (!user) {
