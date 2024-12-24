@@ -29,7 +29,7 @@ export async function askGeminiAI(
     const result = await model.generateContent({
       contents: combined,
       generationConfig: {
-        maxOutputTokens: 300,
+        maxOutputTokens: 350,
         temperature: 0.1,
       },
     });
